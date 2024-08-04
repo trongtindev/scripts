@@ -1,0 +1,13 @@
+{
+  "name": "@nuxt/scripts",
+  "configKey": "scripts",
+  "compatibility": {
+    "nuxt": ">=3",
+    "bridge": false
+  },
+  "version": "0.6.5",
+  "builder": {
+    "@nuxt/module-builder": "0.8.1",
+    "unbuild": "2.0.0"
+  }
+}

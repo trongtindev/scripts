@@ -1,0 +1,158 @@
+import type { UseScriptOptions, DataKeys, SchemaAugmentations, ScriptBase } from '@unhead/schema';
+import type { UseScriptInput, VueScriptInstance } from '@unhead/vue';
+import type { ComputedRef, Ref } from 'vue';
+import type { InferInput, ObjectSchema } from 'valibot';
+import type { Import } from 'unimport';
+import type { SegmentInput } from './registry/segment.js';
+import type { CloudflareWebAnalyticsInput } from './registry/cloudflare-web-analytics.js';
+import type { MetaPixelInput } from './registry/meta-pixel.js';
+import type { FathomAnalyticsInput } from './registry/fathom-analytics.js';
+import type { HotjarInput } from './registry/hotjar.js';
+import type { IntercomInput } from './registry/intercom.js';
+import type { GoogleMapsInput } from './registry/google-maps.js';
+import type { MatomoAnalyticsInput } from './registry/matomo-analytics.js';
+import type { StripeInput } from './registry/stripe.js';
+import type { VimeoPlayerInput } from './registry/vimeo-player.js';
+import type { XPixelInput } from './registry/x-pixel.js';
+import type { YouTubePlayerInput } from './registry/youtube-player.js';
+import type { PlausibleAnalyticsInput } from './registry/plausible-analytics.js';
+import type { NpmInput } from './registry/npm.js';
+import type { LemonSqueezyInput } from './registry/lemon-squeezy.js';
+import type { GoogleAdsenseInput } from './registry/google-adsense.js';
+import type { ClarityInput } from './registry/clarity.js';
+import type { CrispInput } from './registry/crisp.js';
+import type { GoogleAnalyticsInput } from './registry/google-analytics.js';
+import type { GoogleTagManagerInput } from './registry/google-tag-manager.js';
+export type NuxtUseScriptOptions<T = any> = Omit<UseScriptOptions<T>, 'trigger'> & {
+    /**
+     * The trigger to load the script:
+     * - `onNuxtReady` - Load the script when Nuxt is ready.
+     * - `manual` - Load the script manually by calling `$script.load()` or `$script.waitForLoad()`.
+     * - `Promise` - Load the script when the promise resolves.
+     */
+    trigger?: UseScriptOptions<T>['trigger'] | 'onNuxtReady';
+    /**
+     * Should the script be bundled as an asset and loaded from your server. This is useful for improving the
+     * performance by avoiding the extra DNS lookup and reducing the number of requests. It also
+     * improves privacy by not sharing the user's IP address with third-party servers.
+     * - `true` - Bundle the script as an asset.
+     * - `false` - Do not bundle the script. (default)
+     */
+    bundle?: boolean;
+    /**
+     * Skip any schema validation for the script input. This is useful for loading the script stubs for development without
+     * loading the actual script and not getting warnings.
+     */
+    skipValidation?: boolean;
+    /**
+     * @internal
+     */
+    performanceMarkFeature?: string;
+    /**
+     * @internal
+     */
+    devtools?: {
+        /**
+         * Key used to map to the registry script for Nuxt DevTools.
+         * @internal
+         */
+        registryKey?: string;
+        /**
+         * Extra metadata to show with the registry script
+         * @internal
+         */
+        registryMeta?: Record<string, string>;
+    };
+};
+export type NuxtUseScriptOptionsSerializable = Omit<NuxtUseScriptOptions, 'use' | 'skipValidation' | 'stub' | 'trigger' | 'eventContext' | 'beforeInit'> & {
+    trigger?: 'client' | 'server' | 'onNuxtReady';
+};
+export type NuxtUseScriptInput = UseScriptInput;
+export interface TrackedPage {
+    title?: string;
+    path: string;
+}
+export interface ConsentScriptTriggerOptions {
+    /**
+     * An optional reactive (or promise) reference to the consent state. You can use this to accept the consent for scripts
+     * instead of using the accept() method.
+     */
+    consent?: Promise<boolean | void> | Ref<boolean> | ComputedRef<boolean> | boolean;
+    /**
+     * Should the script be loaded on the `requestIdleCallback` callback. This is useful for non-essential scripts that
+     * have already been consented to be loaded.
+     */
+    postConsentTrigger?: NuxtUseScriptOptions['trigger'];
+}
+export interface NuxtDevToolsScriptInstance {
+    registryKey?: string;
+    registryMeta?: Record<string, string>;
+    src: string;
+    $script: VueScriptInstance<any>;
+    events: {
+        type: string;
+        fn?: string | symbol;
+        args?: any;
+        status?: string;
+        trigger?: NuxtUseScriptOptions['trigger'];
+        at: number;
+    }[];
+}
+export interface ScriptRegistry {
+    crisp?: CrispInput;
+    clarity?: ClarityInput;
+    cloudflareWebAnalytics?: CloudflareWebAnalyticsInput;
+    metaPixel?: MetaPixelInput;
+    fathomAnalytics?: FathomAnalyticsInput;
+    plausibleAnalytics?: PlausibleAnalyticsInput;
+    googleAdsense?: GoogleAdsenseInput;
+    googleAnalytics?: GoogleAnalyticsInput;
+    googleMaps?: GoogleMapsInput;
+    lemonSqueezy?: LemonSqueezyInput;
+    googleTagManager?: GoogleTagManagerInput;
+    hotjar?: HotjarInput;
+    intercom?: IntercomInput;
+    matomoAnalytics?: MatomoAnalyticsInput;
+    segment?: SegmentInput;
+    stripe?: StripeInput;
+    xPixel?: XPixelInput;
+    youtubePlayer?: YouTubePlayerInput;
+    vimeoPlayer?: VimeoPlayerInput;
+    [key: `${string}-npm`]: NpmInput;
+}
+export type NuxtConfigScriptRegistryEntry<T> = true | 'mock' | T | [T, NuxtUseScriptOptionsSerializable];
+export type NuxtConfigScriptRegistry<T extends keyof ScriptRegistry = keyof ScriptRegistry> = Partial<{
+    [key in T]: NuxtConfigScriptRegistryEntry<ScriptRegistry[key]>;
+}>;
+declare const emptyOptions: ObjectSchema<{}, undefined>;
+export type EmptyOptionsSchema = typeof emptyOptions;
+type ScriptInput = ScriptBase & DataKeys & SchemaAugmentations['script'];
+export type RegistryScriptInput<T extends ObjectSchema<any, any> = EmptyOptionsSchema, Bundelable extends boolean = true, Usable extends boolean = false, CanBypassOptions extends boolean = true> = (InferInput<T> & {
+    /**
+     * A unique key to use for the script, this can be used to load multiple of the same script with different options.
+     */
+    key?: string;
+    scriptInput?: ScriptInput;
+    scriptOptions?: Omit<NuxtUseScriptOptions, Bundelable extends true ? '' : 'bundle' | Usable extends true ? '' : 'use'>;
+}) | Partial<InferInput<T>> & (CanBypassOptions extends true ? {
+    /**
+     * A unique key to use for the script, this can be used to load multiple of the same script with different options.
+     */
+    key?: string;
+    scriptInput: Required<Pick<ScriptInput, 'src'>> & ScriptInput;
+    scriptOptions?: Omit<NuxtUseScriptOptions, Bundelable extends true ? '' : 'bundle' | Usable extends true ? '' : 'use'>;
+} : never);
+export interface RegistryScript {
+    import?: Import;
+    scriptBundling?: false | ((options?: any) => string | false);
+    label?: string;
+    src?: string | false;
+    category?: string;
+    logo?: string | {
+        light: string;
+        dark: string;
+    };
+}
+export type ElementScriptTrigger = 'immediate' | 'visible' | string | string[] | false;
+export type RegistryScripts = RegistryScript[];
+export {};
