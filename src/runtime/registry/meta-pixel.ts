@@ -29,11 +29,11 @@ export interface MetaPixelApi {
     queue: any[]
   }
   _fbq: MetaPixelApi['fbq']
+  callMethod?: FbqFns
 }
 
 declare global {
-  interface Window extends MetaPixelApi {
-  }
+  interface Window extends MetaPixelApi {}
 }
 
 export const MetaPixelOptions = object({
@@ -57,8 +57,14 @@ export function useScriptMetaPixel<T extends MetaPixelApi>(_options?: MetaPixelI
       ? undefined
       : () => {
           const fbq: MetaPixelApi['fbq'] = window.fbq = function (...params: any[]) {
-          // @ts-expect-error untyped
-            fbq.callMethod ? fbq.callMethod(...params) : fbq.queue.push(params)
+            // @ts-expect-error untypeds
+            if (fbq.callMethod) {
+              // @ts-expect-error untyped
+              fbq.callMethod(...params)
+            }
+            else {
+              fbq.queue.push(params)
+            }
           } as any as MetaPixelApi['fbq']
           if (!window._fbq)
             window._fbq = fbq

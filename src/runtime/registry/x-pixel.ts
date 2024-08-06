@@ -36,8 +36,7 @@ export interface XPixelApi {
 }
 
 declare global {
-  interface Window extends XPixelApi {
-  }
+  interface Window extends XPixelApi {}
 }
 
 export const XPixelOptions = object({
@@ -57,10 +56,16 @@ export function useScriptXPixel<T extends XPixelApi>(_options?: XPixelInput) {
         ? undefined
         : () => {
           // @ts-expect-error untyped
-            const s = window.twq = function () {
-            // @ts-expect-error untyped
-              // eslint-disable-next-line prefer-rest-params
-              s.exe ? s.exe(s, arguments) : s.queue.push(arguments)
+            const s = window.twq = function (...args) {
+              // @ts-expect-error untyped
+              if (e.exe) {
+                // @ts-expect-error untyped
+                s.exe(s, args)
+              }
+              else {
+                // @ts-expect-error untyped
+                s.queue.push(args)
+              }
             }
             // @ts-expect-error untyped
             s.version = options?.version || '1.1'
